@@ -14,6 +14,11 @@ public:
     void update(const float& dt, const sf::Vector2i mouse_pos);
     void render(sf::RenderTarget& target);
 
+    void setVelocityX(const float& x);
+    void setVelocityY(const float& y);
+    void setJumping(const bool& x);
+    void setOnPlatform(const bool& x);
+
 private:
     sf::Texture texture2;
     MovementComponent movementComponent;

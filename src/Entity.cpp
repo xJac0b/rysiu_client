@@ -35,6 +35,7 @@ const sf::Vector2f& Entity::getPosition(bool hitboxa) const
 
 void Entity::setPosition(sf::Vector2f pos)
 {
+	
 	gui::setVertexShape(this->sprite, sf::FloatRect(pos, sf::Vector2f(gui::getVertexShape(this->sprite).width,
 		gui::getVertexShape(this->sprite).height)));
 	this->hitbox.setPosition(this->sprite[0].position.x + this->hitboxOffset.x,

@@ -5,7 +5,7 @@ MovementComponent::MovementComponent(std::vector<sf::Vertex>&sprite,
     float maxVelocity, float acceleration, float deceleration,
     sf::Vector2f hitboxOffset)
     : sprite(sprite), maxVelocity(maxVelocity), acceleration(acceleration), deceleration(deceleration),
-    hitboxOffset(hitboxOffset), jumping(false), up(false)
+    hitboxOffset(hitboxOffset), jumping(false), up(false),standingOnPlatform(false)
 {
 this->maxVelocity = maxVelocity;
 }
@@ -26,6 +26,26 @@ const sf::Vector2f & MovementComponent::getVelocity() const
     return this->velocity;
 }
 
+void MovementComponent::setVelocityVector(const float& x, const float& y) {
+    if (x == 0) {
+        
+        this->velocity.y = y;
+    }
+    if (y == 0) {
+        this->velocity.x = x;
+
+    }
+    
+    
+}
+
+void MovementComponent::setJumping(const bool& x) {
+    this->jumping = x;
+}
+void MovementComponent::setOnPlatform(const bool& x) 
+{
+    this->standingOnPlatform = x;
+}
 
 void MovementComponent::move(const float dir_x, const float dir_y, const float & dt)
 {
@@ -39,7 +59,7 @@ void MovementComponent::jump()
 {
     this->jumping = true;
     this->up = true;
-    this->velocity.y = -this->maxVelocity*4;
+    this->velocity.y = -this->maxVelocity*3;
 }
 
 void MovementComponent::update(const float& dt)
@@ -50,24 +70,24 @@ void MovementComponent::update(const float& dt)
 if(this->velocity.x > 0.f) //Check for positive x
 {
         //Max velocity check
-    if(this->velocity.x > this->maxVelocity)
+    if(this->velocity.x >= this->maxVelocity)
         this->velocity.x = this->maxVelocity;
 
         //Deceleration
     this->velocity.x -= deceleration;
-    if(this->velocity.x < 0.f)
+    if(this->velocity.x <= 0.f)
         this->velocity.x = 0.f;
 }
 
-else if(this->velocity.x < 0.f) //Check for negative x
+else if(this->velocity.x <= 0.f) //Check for negative x
 {
         //Max velocity
-    if(this->velocity.x < -this->maxVelocity)
+    if(this->velocity.x <= -this->maxVelocity)
         this->velocity.x = -this->maxVelocity;
 
         //Deceleration
     this->velocity.x += deceleration;
-    if(this->velocity.x > 0.f)
+    if(this->velocity.x >= 0.f)
         this->velocity.x = 0.f;
 }
 
@@ -83,8 +103,15 @@ if (this->jumping && this->up)
 }
 else if (!this->up)
 {
-    if (this->sprite[3].position.y < 600.f /*TODO: but is not standing on a platform*/)
-    {
+    
+    if (this->sprite[3].position.y >= 600.f) {
+        
+        standingOnPlatform = true;
+    }
+    else {
+        standingOnPlatform = false;
+    }
+    if (!standingOnPlatform) {
         this->velocity.y += this->acceleration;
     }
     else
@@ -94,12 +121,12 @@ else if (!this->up)
     }
 }
 
-   
+
 //Final Move
 for (auto& i : this->sprite)
 {
     i.position.x += this->velocity.x*dt; //Uses velocity
-    i.position.y += this->velocity.y * dt;
+    i.position.y += this->velocity.y*dt;
 }
 sf::FloatRect bnds = gui::getVertexShape(this->sprite);
 if (bnds.left < -this->hitboxOffset.x)
@@ -107,6 +134,7 @@ if (bnds.left < -this->hitboxOffset.x)
 else if (bnds.width + bnds.left > 800 + this->hitboxOffset.x)
 gui::setVertexShape(this->sprite, { 800 - bnds.width + this->hitboxOffset.x, bnds.top, bnds.width, bnds.height });
 
+std::cout << (standingOnPlatform ? "true" : "false") << "\n";
 }
 
 const bool& MovementComponent::canJump()

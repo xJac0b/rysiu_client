@@ -16,6 +16,9 @@ public:
     void move(const float dir_x, const float dir_y, const float & dt);
     void jump();
     void update(const float &dt);
+    void setVelocityVector(const float& x, const    float& y);
+    void setJumping(const bool& x);
+    void setOnPlatform(const bool& x);
     const bool& canJump();
 private:
     std::vector<sf::Vertex>& sprite;
@@ -23,7 +26,7 @@ private:
     float maxVelocity;
     float acceleration;
     float deceleration;
-    bool jumping, up;
+    bool jumping, up,standingOnPlatform;
     sf::Vector2f velocity;
     sf::Vector2f hitboxOffset;
 };

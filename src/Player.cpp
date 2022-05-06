@@ -30,6 +30,23 @@ void Player::fall(const float& dt)
 {
 	this->move(0.f, 2.f, dt);
 }
+void Player::setVelocityX(const float& x)
+{
+	this->movementComponent.setVelocityVector(x,0);
+}
+void Player::setVelocityY( const float& y)
+{
+	this->movementComponent.setVelocityVector(0,y);
+}
+
+void Player::setJumping(const bool& x) 
+{
+	this->movementComponent.setJumping(x);
+}
+void Player::setOnPlatform(const bool& x) 
+{
+	this->movementComponent.setOnPlatform(x);
+}
 
 void Player::update(const float& dt, const sf::Vector2i mouse_pos)
 {	
@@ -55,5 +72,5 @@ void Player::update(const float& dt, const sf::Vector2i mouse_pos)
 void Player::render(sf::RenderTarget& target)
 {
 	target.draw(&this->sprite[0], 4, sf::Quads, this->state);
-	//target.draw(this->hitbox);
+	target.draw(this->hitbox);
 }
