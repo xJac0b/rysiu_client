@@ -189,7 +189,7 @@ namespace gui
 	ButtonImageList::ButtonImageList(std::vector<std::pair<sf::String, bool>> paths,
 		sf::FloatRect bounds, sf::FloatRect tbounds, sf::Font& font, unsigned charSize,
 		sf::Vector2u w_size, int active, std::vector<sf::Color> colors) 
-		: active(active)
+		: active(active), clicked(false)
 	{
 		this->frame.setSize(sf::Vector2f(p2pX(bounds.width, w_size), p2pY(bounds.height, w_size)));
 		this->frame.setPosition(p2pX(bounds.left, w_size), p2pY(bounds.top, w_size));
@@ -237,8 +237,31 @@ namespace gui
 	{
 		this->items[active].first->update(mousePosWin);
 		if (this->items[active].first->isClicked())
+		{
 			if (++active >= this->items.size())
 				active = 0;
+			clicked = true;
+		}	
+	}
+
+	const int& ButtonImageList::getActive()
+	{
+		return this->active;
+	}
+
+	const bool ButtonImageList::activeAvailable()
+	{
+		return this->items[active].second;
+	}
+
+	const bool ButtonImageList::isClicked()
+	{
+		if (this->clicked)
+		{
+			this->clicked = false;
+			return true;
+		}
+		return false;
 	}
 	
 	///							///
@@ -249,11 +272,11 @@ namespace gui
 	///							///
 	///							///
 	
-	Input::Input(sf::FloatRect bounds, sf::Color color_field, sf::Color color_text, sf::Font& font, unsigned char_size, bool hide,
-		unsigned size, sf::String placeholder)
+	Input::Input(sf::FloatRect bounds, sf::Color color_field, sf::Color color_text, sf::Font& font, unsigned char_size, sf::String label,
+		bool hide, unsigned size, sf::String placeholder,bool only_numbers)
 		: bounds(bounds), field(4, sf::Vertex()), outline(5, sf::Vertex()), cursor(2, sf::Vertex()),
 		colorField(color_field), colorText(color_text),
-		size(size), focused(0), timerCursor(Timer(0.f, 40.f)), showCursor(1), hide(hide)
+		size(size), focused(0), timerCursor(Timer(0.f, 40.f)), showCursor(1), hide(hide), onlyNumbers(only_numbers)
 	{
 		gui::setVertexShape(this->field, bounds);
 		for (auto& i : this->field)
@@ -272,6 +295,13 @@ namespace gui
 		this->text.setPosition(bounds.left + bounds.width / 2.f - this->text.getGlobalBounds().width / 2.f,
 			bounds.top + (bounds.height / 3.7f) - this->text.getGlobalBounds().height / 2.f);
 
+		this->label.setFont(font);
+		this->label.setString(label);
+		this->label.setCharacterSize(char_size);
+		this->label.setFillColor(this->colorText);
+		this->label.setPosition(bounds.left,
+			bounds.top - char_size-5);
+
 		this->cursor[0].position = { this->text.getPosition().x + this->text.getGlobalBounds().width + 4.f, this->text.getPosition().y + this->text.getGlobalBounds().height / 2.f };
 		this->cursor[1].position = { this->cursor[0].position.x, this->cursor[0].position.y + char_size / 1.2f };
 		this->cursor[0].color = sf::Color::Black;
@@ -288,7 +318,7 @@ namespace gui
 		return this->svalue;
 	}
 
-	void Input::setPosition()
+	void Input::setTextPosition()
 	{
 		this->text.setPosition(this->bounds.left + this->bounds.width / 2.f - this->text.getGlobalBounds().width / 2.f,
 			this->text.getPosition().y);
@@ -296,9 +326,24 @@ namespace gui
 		this->cursor[1].position = { this->cursor[0].position.x, this->cursor[0].position.y + this->text.getCharacterSize() / 1.2f };
 	}
 
+	void Input::setPosition(sf::Vector2f pos)
+	{
+		this->bounds.left = pos.x;
+		this->bounds.top = pos.y;
+		gui::setVertexShape(this->field, this->bounds);
+		setVertexShape(this->outline, sf::FloatRect(this->bounds.left - 2.f, this->bounds.top - 2.f, this->bounds.width + 3.f, this->bounds.height + 3.f));
+		this->outline[4].position = this->outline[0].position;
+		this->label.setPosition(bounds.left,
+			bounds.top - this->label.getCharacterSize() - 5);
+		this->text.setPosition(bounds.left + bounds.width / 2.f - this->text.getGlobalBounds().width / 2.f,
+			bounds.top + (bounds.height / 3.7f));
+		//this->setTextPosition();
+	}
+
 	void Input::enter(unsigned int x)
 	{
-		if (focused && x != 38 && x!=32 && x != 9 && x != 13)
+		if ((!this->onlyNumbers && focused && x != 38 && x!=32 && x != 9 && x != 13) ||
+			(this->onlyNumbers && focused && (x > 47 && x < 58 || x == 8)))
 		{
 			if (x == 8)
 			{
@@ -337,7 +382,7 @@ namespace gui
 			
 				
 			
-			this->setPosition();
+			this->setTextPosition();
 
 			this->showCursor = 1;
 			this->timerCursor.reset();
@@ -366,7 +411,7 @@ namespace gui
 			if (this->showCursor)
 				target.draw(&this->cursor[0], 2, sf::Lines);
 		}
-
+		target.draw(this->label);
 		target.draw(this->text);
 	}
 

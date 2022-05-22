@@ -10,9 +10,9 @@ App::App()
     this->stateData = std::make_unique<StateData>(*this->window, this->states, this->event, this->font);
     //Push state  
     //std::vector<std::pair<sf::String, bool>>temp{ {"Resources/Images/Skins/abc.png", true}, {"Resources/Images/Skins/abcd.png", false} };
-    //this->states.push(std::make_unique<MainMenuState>(*this->stateData,"Resources/Images/background.jpg", ));
-    //this->states.push(std::make_unique<LoginState>(*this->stateData, "Resources/Images/background.jpg"));
-    this->states.push(std::make_unique<GameState>(*this->stateData, "Resources/Images/background.jpg"));
+    //this->states.push(std::make_unique<MainMenuState>(*this->stateData,"Resources/Images/background.jpg"));
+    this->states.push(std::make_unique<LoginState>(*this->stateData, "Resources/Images/background.jpg"));
+    //this->states.push(std::make_unique<GameState>(*this->stateData, "Resources/Images/background.jpg"));
 }
 
 App::~App()
@@ -45,7 +45,7 @@ void App::update()
     
     if (!this->states.empty())
     {
-        if (this->window->hasFocus())
+        //if (this->window->hasFocus())
         {
             this->states.top()->update(this->dt); // update things in state
         }

@@ -11,10 +11,9 @@ public:
     void render();
 private:
     sf::Text title, errorText;
-    std::tuple < sf::String, sf::String, sf::String, int, int, int>data;
+    std::tuple < sf::String, sf::String, int, int, std::string, int, int,int, int>data;
     std::unique_ptr<gui::Input> userInput;
     std::unique_ptr<gui::Input> passInput;
     std::unique_ptr<gui::Button> submitButton;
-
 };
 

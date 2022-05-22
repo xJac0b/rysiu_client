@@ -12,7 +12,7 @@ public:
 	std::stack<std::unique_ptr<State>>&states;
 	sf::Event& sfEvent;
 	sf::Font& font;
-	std::set<int, std::greater<int>>scores;
+	int playerId;
 };
 class State
 {

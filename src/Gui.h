@@ -74,21 +74,27 @@ namespace gui
 		~ButtonImageList();
 		void render(sf::RenderTarget& target);
 		void update(sf::Vector2i& mousePosWin);
+		const int& getActive();
+		const bool activeAvailable();
+		const bool isClicked();
+
 	private:
 		std::vector<std::pair<std::unique_ptr<ButtonImage>, bool>>items; // bool - available or not
 		int active;
 		sf::RectangleShape frame, curtain;
 		sf::Text curtainText;
+		bool clicked;
 	};
 	class Input
 	{
 	public:
-		Input(sf::FloatRect bounds, sf::Color color_field, sf::Color color_text, sf::Font& font, unsigned char_size, bool hide = false,
-			unsigned size = 20, sf::String placeholder = "");
+		Input(sf::FloatRect bounds, sf::Color color_field, sf::Color color_text, sf::Font& font, unsigned char_size, sf::String label = "",
+			bool hide = false, unsigned size = 20, sf::String placeholder = "", bool only_numbers = false);
 		~Input();
 
 		const std::wstring get();
-		virtual void setPosition();
+		void setTextPosition();
+		void setPosition(sf::Vector2f pos);
 		void enter(unsigned int x);
 		void update(sf::Vector2i mouse_pos_win, const float& dt);
 		void render(sf::RenderTarget& target);
@@ -101,13 +107,12 @@ namespace gui
 		std::vector<sf::Vertex>cursor;
 		Timer timerCursor;
 		bool showCursor;
-		sf::Text text;
+		sf::Text text, label;
 		unsigned size;
 		sf::Color colorField;
 		sf::Color colorText;
-		bool focused;
+		bool focused, hide, onlyNumbers;
 		sf::String svalue;
-		bool hide;
 	};
 
 

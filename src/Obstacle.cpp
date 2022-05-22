@@ -18,4 +18,5 @@ void Obstacle::update(const float& dt, const sf::Vector2i mouse_pos)
 void Obstacle::render(sf::RenderTarget& target)
 {
 	target.draw(&this->sprite[0], 4, sf::Quads, this->state);
+	//target.draw(this->hitbox);
 }

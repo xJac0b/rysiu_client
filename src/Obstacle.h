@@ -1,5 +1,5 @@
 #pragma once
-#include "Entity.h"
+#include "Weapon.h"
 class Obstacle :
     public Entity
 {

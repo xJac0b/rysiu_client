@@ -1,13 +1,13 @@
 #include "pch.h"
 #include "MovementComponent.h"
-
-MovementComponent::MovementComponent(std::vector<sf::Vertex>&sprite,
+using namespace std;
+MovementComponent::MovementComponent(std::vector<sf::Vertex>& sprite,
     float maxVelocity, float acceleration, float deceleration,
     sf::Vector2f hitboxOffset)
-    : sprite(sprite), maxVelocity(maxVelocity), acceleration(acceleration), deceleration(deceleration),
-    hitboxOffset(hitboxOffset), jumping(false), up(false),standingOnPlatform(false)
+    : sprite(sprite), maxVelocity(maxVelocity), acceleration({ 0,3000 }), deceleration(deceleration),
+    hitboxOffset(hitboxOffset), jumping(false), up(false), platform(false), velocity({0,0})
 {
-this->maxVelocity = maxVelocity;
+    this->maxVelocity = maxVelocity;
 }
 
 MovementComponent::~MovementComponent()
@@ -21,123 +21,114 @@ const float& MovementComponent::getMaxVelocity() const
 }
 
 
-const sf::Vector2f & MovementComponent::getVelocity() const
+const sf::Vector2f& MovementComponent::getVelocity() const
 {
     return this->velocity;
 }
 
-void MovementComponent::setVelocityVector(const float& x, const float& y) {
-    if (x == 0) {
-        
-        this->velocity.y = y;
-    }
-    if (y == 0) {
-        this->velocity.x = x;
-
-    }
-    
-    
-}
-
-void MovementComponent::setJumping(const bool& x) {
-    this->jumping = x;
-}
-void MovementComponent::setOnPlatform(const bool& x) 
+void MovementComponent::jump(const float&dt)
 {
-    this->standingOnPlatform = x;
-}
-
-void MovementComponent::move(const float dir_x, const float dir_y, const float & dt)
-{
-//Acceleration
-this->velocity.x += this->acceleration * dir_x;
-
-this->velocity.y += this->acceleration * dir_y;
-}
-
-void MovementComponent::jump()
-{
+    this->velocity.y = -960.f;
     this->jumping = true;
-    this->up = true;
-    this->velocity.y = -this->maxVelocity*3;
+}
+
+void MovementComponent::move(const float dir_x, const float dir_y, const float& dt)
+{
+    //Acceleration
+    this->acceleration.x = 1650;
+    this->velocity.x += (this->acceleration.x * dir_x * dt);
+    if(dir_x < 0)
+        this->acceleration.x = -this->acceleration.x;
 }
 
 void MovementComponent::update(const float& dt)
 {
-/*Decelerates the sprite and controls the maximum velocity.
-  Moves the sprite.
-*/
-if(this->velocity.x > 0.f) //Check for positive x
-{
-        //Max velocity check
-    if(this->velocity.x >= this->maxVelocity)
-        this->velocity.x = this->maxVelocity;
-
-        //Deceleration
-    this->velocity.x -= deceleration;
-    if(this->velocity.x <= 0.f)
-        this->velocity.x = 0.f;
-}
-
-else if(this->velocity.x <= 0.f) //Check for negative x
-{
-        //Max velocity
-    if(this->velocity.x <= -this->maxVelocity)
-        this->velocity.x = -this->maxVelocity;
-
-        //Deceleration
-    this->velocity.x += deceleration;
-    if(this->velocity.x >= 0.f)
-        this->velocity.x = 0.f;
-}
-
-
-//GRAVITY
-if (this->jumping && this->up)
-{
-    this->velocity.y += this->deceleration;
-    if (this->velocity.y >= 0)
+    if (this->velocity.x > 0.f) //Check for positive x
     {
-        this->up = false;
+        //Max velocity check
+        if (this->velocity.x > this->maxVelocity)
+            this->velocity.x = this->maxVelocity;
+
+        //Deceleration
+        this->velocity.x -= deceleration * dt;
+        if (this->velocity.x < 0.f)
+            this->velocity.x = 0.f;
     }
-}
-else if (!this->up)
-{
-    
-    if (this->sprite[3].position.y >= 600.f) {
-        
-        standingOnPlatform = true;
+
+    else if (this->velocity.x < 0.f) //Check for negative x
+    {
+        //Max velocity
+        if (this->velocity.x < -this->maxVelocity)
+            this->velocity.x = -this->maxVelocity;
+
+        //Deceleration
+        this->velocity.x += deceleration * dt;
+        if (this->velocity.x > 0.f)
+            this->velocity.x = 0.f;
     }
-    else {
-        standingOnPlatform = false;
-    }
-    if (!standingOnPlatform) {
-        this->velocity.y += this->acceleration;
-    }
+
+    if (this->sprite[3].position.y < 600.f && !this->platform)
+    {
+        this->velocity.y += acceleration.y * dt;
+    }  
     else
     {
-        this->velocity.y = 0.f;
         this->jumping = false;
+        if (this->velocity.y > 0.f)
+            this->velocity.y = 0.f;
     }
-}
+       
+    //cout << this->platform;
+    //Final Move
+    for (auto& i : this->sprite)
+    {
+       i.position.x += (velocity.x * dt) + (acceleration.x * dt * dt / 2.f);
+      // if (!this->platform)
+       i.position.y += (velocity.y * dt);
+       //else
+          // i.position.y += (velocity.y * dt);
+    }
+   // if (this->sprite[0].position.y < 300)
+        //cout << this->platform << endl;//cout << this->sprite[0].position.y << endl;
+    acceleration = { 0.f,acceleration.y };
 
 
-//Final Move
-for (auto& i : this->sprite)
-{
-    i.position.x += this->velocity.x*dt; //Uses velocity
-    i.position.y += this->velocity.y*dt;
-}
-sf::FloatRect bnds = gui::getVertexShape(this->sprite);
-if (bnds.left < -this->hitboxOffset.x)
-    gui::setVertexShape(this->sprite, { -this->hitboxOffset.x, bnds.top, bnds.width, bnds.height });
-else if (bnds.width + bnds.left > 800 + this->hitboxOffset.x)
-gui::setVertexShape(this->sprite, { 800 - bnds.width + this->hitboxOffset.x, bnds.top, bnds.width, bnds.height });
-
-std::cout << (standingOnPlatform ? "true" : "false") << "\n";
+    sf::FloatRect bnds = gui::getVertexShape(this->sprite);
+    if (bnds.left < -this->hitboxOffset.x)
+        bnds.left = -this->hitboxOffset.x;
+    else if (bnds.width + bnds.left > 800 + this->hitboxOffset.x)
+        bnds.left = 800 - bnds.width + this->hitboxOffset.x;
+    if (bnds.top < -this->hitboxOffset.y)
+    {
+        bnds.top = -this->hitboxOffset.y;
+        this->up = false;
+        this->velocity.y = 0;
+    }
+    else if (bnds.top+bnds.height >= 600)
+    {
+        bnds.top = 600 - bnds.height;
+    }
+    gui::setVertexShape(this->sprite, { bnds.left, bnds.top, bnds.width, bnds.height });
 }
 
 const bool& MovementComponent::canJump()
 {
     return !this->jumping;
+}
+
+void MovementComponent::onPlatform(bool x)
+{
+    this->platform = x;
+    if (x)
+    {
+        this->jumping = false;
+        this->velocity.y = 0.f;
+    }
+}
+
+const bool& MovementComponent::falling()
+{
+    if (this->velocity.y >= 0.f)
+        return true;
+    return false;
 }
